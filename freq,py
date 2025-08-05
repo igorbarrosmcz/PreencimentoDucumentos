@@ -1,0 +1,41 @@
+import pandas as pd
+from docx import Document
+import os
+
+# Caminhos dos arquivos
+CAMINHO_MODELO = "MODELO.docx"  # Substitua com o caminho correto no seu computador
+CAMINHO_PLANILHA = "professores filtrados.xlsx"  # Substitua com o caminho correto no seu computador
+PASTA_SAIDA = "frequencias_geradas"
+
+# Criar a pasta de saída se não existir
+os.makedirs(PASTA_SAIDA, exist_ok=True)
+
+# Carregar a planilha
+df = pd.read_excel(CAMINHO_PLANILHA)
+
+# Função para preencher o modelo
+def preencher_frequencia(nome, cpf, curso, modelo_path):
+    doc = Document(modelo_path)
+    
+    for paragrafo in doc.paragraphs:
+        if "BOLSISTA:" in paragrafo.text:
+            paragrafo.text = f"BOLSISTA: {nome}"
+        elif "CPF:" in paragrafo.text:
+            paragrafo.text = f"CPF: {cpf}"
+        elif "CURSO:" in paragrafo.text:
+            paragrafo.text = f"CURSO: {curso}"
+    
+    return doc
+
+# Loop pelos professores
+for _, row in df.iterrows():
+    nome = row["Nome"]
+    cpf = row["CPF"]
+    curso = row["Curso"]
+
+    documento = preencher_frequencia(nome, cpf, curso, CAMINHO_MODELO)
+    
+    nome_arquivo = f"{PASTA_SAIDA}/frequencia_{nome.replace(' ', '_')}.docx"
+    documento.save(nome_arquivo)
+
+print(f"Frequências geradas com sucesso na pasta: {PASTA_SAIDA}")
